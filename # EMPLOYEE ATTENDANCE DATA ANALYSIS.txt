@@ -1,0 +1,155 @@
+# EMPLOYEE ATTENDANCE DATA ANALYSIS SYSTEM
+import pandas as pd
+import numpy as np
+np.random.seed(34)
+# 1. CREATE SAMPLE EMPLOYEE DATASET
+n = 354
+departments = [
+    "HR",
+    "IT",
+    "Finance",
+    "Marketing",
+    "Operations"
+]
+attendance_status = [
+    "Present",
+    "Absent",
+    "Late",
+    "Leave"
+]
+data = {
+    "Employee_ID": np.random.randint(1001, 1101, n),
+
+    "Employee_Name": [
+        f"Employee_{i}" for i in range(1, n + 1)
+    ],
+
+    "Department": np.random.choice(
+        departments, n
+    ),
+
+    "Date": pd.date_range(
+        start="2026-01-01",
+        periods=n,
+        freq="D"
+    ),
+
+    "Attendance_Status": np.random.choice(
+        attendance_status,
+        n,
+        p=[0.70, 0.13, 0.09, 0.08]
+    ),
+
+    "Working_Hours": np.round(
+        np.random.uniform(5, 9, n), 2
+    ),
+
+    "Late_Minutes": np.random.randint(
+        0, 61, n
+    ),
+
+    "Leave_Days": np.random.choice(
+        [0, 1],
+        n,
+        p=[0.9, 0.1]
+    )
+}
+
+df = pd.DataFrame(data)
+# 2. DISPLAY ORIGINAL DATASET
+print("Original Dataset")
+
+print("----------------")
+print("Rows:", len(df))
+
+print("Columns:", len(df.columns))
+
+display(df.head(7))
+# 3. INTRODUCE MISSING VALUES
+df.loc[10, "Working_Hours"] = np.nan
+df.loc[25, "Department"] = np.nan
+df.loc[50, "Late_Minutes"] = np.nan
+
+# 4. INTRODUCE DUPLICATE ROWS
+duplicates = df.iloc[:8].copy()
+df = pd.concat(
+    [df, duplicates],
+    ignore_index=True
+)
+
+# ATTENDANCE STATUS COUNTS BEFORE CLEANING
+print("\nAttendance Status Distribution Before Cleaning")
+print("----------------------------------------------")
+
+before_status_count = df["Attendance_Status"].value_counts()
+
+print(before_status_count)
+
+# Ensure all four categories are displayed
+before_status_count = before_status_count.reindex(
+    ["Present", "Absent", "Late", "Leave"],
+    fill_value=0
+)
+
+print("\nBefore Cleaning Record Counts:")
+print(before_status_count)
+
+
+# 5. CHECK MISSING VALUES
+print("\nMissing Values Before Cleaning")
+
+print("------------------------------")
+print(df.isnull().sum())
+total_missing = df.isnull().sum().sum()
+print("\nTotal Missing Values:", total_missing)
+# 6. CHECK DUPLICATEs
+duplicate_count = df.duplicated().sum()
+
+print("\nDuplicate Rows Before Cleaning:",
+      duplicate_count)
+# 7. HANDLE MISSING VALUES
+# Numerical column → Median
+df["Working_Hours"] = df["Working_Hours"].fillna(
+    df["Working_Hours"].median()
+)
+
+df["Late_Minutes"] = df["Late_Minutes"].fillna(
+    df["Late_Minutes"].median()
+)
+
+# Categorical column → Mode
+df["Department"] = df["Department"].fillna(
+    df["Department"].mode()[0]
+)
+
+# 8. REMOVE DUPLICATES
+df = df.drop_duplicates()
+# 9. CHECK DATA TYPES
+df["Date"] = pd.to_datetime(df["Date"])
+
+# 10. FINAL DATASET CHECK
+print("\nFINAL DATASET")
+print("-------------")
+
+print("Rows:", len(df))
+
+print("Columns:", len(df.columns))
+
+print("\nMissing Values After Cleaning:")
+
+print(df.isnull().sum())
+print("\nDuplicate Rows After Cleaning:",
+      df.duplicated().sum())
+# 11. ATTENDANCE STATUS DISTRIBUTION
+print("\nAttendance Status Distribution")
+
+print("------------------------------")
+
+status_count = df["Attendance_Status"].value_counts()
+print(status_count)
+# 12. FINAL DATASET PREVIEW
+print("\nCleaned Dataset Preview")
+
+print("-----------------------")
+
+display(df.head(7))
